@@ -1,3 +1,4 @@
 streamlit~=1.10.0
 moviepy
 yt_dlp
+cffi==1.15.1
