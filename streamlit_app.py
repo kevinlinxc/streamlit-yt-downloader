@@ -1,8 +1,10 @@
 import streamlit as st
 import re
 import youtube_downloader
+from youtube_downloader import audio_path, video_path
 from dataclasses import dataclass
 from enum import IntEnum
+import uuid
 
 
 class AudioOrVideo(IntEnum):
@@ -44,22 +46,26 @@ def display_download_info(title, video, audio):
 def render_download(dl_item):
     st.write(f"### {dl_item.title}")
     col1, col2 = st.columns(2)
+    audio_file_path = audio_path(dl_item.id)
+    video_file_path = video_path(dl_item.id)
+    audio_name = f"{dl_item.id}.mp3"
+    video_name = f"{dl_item.id}.mp4"
 
     # if audio only, render it in col 1, otherwise col1 will be video and col2 will be audio
     if dl_item.video_or_audio == AudioOrVideo.AUDIO:
-        audio_name = f"{dl_item.id}.mp3"
-        with open(audio_name, 'rb') as file:
-            st.download_button(label="Download Audio", data=file, file_name=audio_name, mime="audio/mpeg")
+        with open(audio_file_path, 'rb') as file:
+            st.download_button(label="Download Audio", data=file, file_name=audio_name, mime="audio/mpeg",
+                               key=str(uuid.uuid4()))
         return
     # from here and down we know it's video or both, so render video in col1
-    video_name = f"{dl_item.id}.mp4"
-    with open(video_name, 'rb') as file:
-        col1.download_button(label="Download Video", data=file, file_name=video_name, mime="video/mp4")
+    with open(video_file_path, 'rb') as file:
+        col1.download_button(label="Download Video", data=file, file_name=video_name, mime="video/mp4",
+                             key=str(uuid.uuid4()))
     # lastly, if there's audio, put it in col2
     if dl_item.video_or_audio == AudioOrVideo.BOTH:
-        audio_name = f"{dl_item.id}.mp3"
-        with open(audio_name, 'rb') as file2:
-            col2.download_button(label="Download Audio", data=file2, file_name=audio_name, mime="audio/mpeg")
+        with open(audio_file_path, 'rb') as file2:
+            col2.download_button(label="Download Audio", data=file2, file_name=audio_name, mime="audio/mpeg",
+                                 key=str(uuid.uuid4()))
 
 
 class StreamlitYoutubeDownloader:
@@ -87,7 +93,7 @@ class StreamlitYoutubeDownloader:
         if matcher.group(1):
             video_id = matcher.group(1)
             title = youtube_downloader.get_title(link)
-            video_file_name = f"{video_id}.mp4"
+            video_file_path = video_path(video_id)
             display_download_info(title, video, audio)
 
             download_obj = Download(title, video_id, AudioOrVideo(video + 2 * audio))
@@ -97,8 +103,8 @@ class StreamlitYoutubeDownloader:
             if video:
                 video_ret = youtube_downloader.download_video(link, video_id)
             if audio:
-                audio_file_name = f"{video_id}.mp3"
-                youtube_downloader.mp4_to_mp3(video_file_name, audio_file_name)
+                audio_file_path = audio_path(video_id)
+                youtube_downloader.mp4_to_mp3(video_file_path, audio_file_path)
             if video_ret != 0 or audio_ret != 0:
                 st.error("Error while downloading video or audio")
                 return
