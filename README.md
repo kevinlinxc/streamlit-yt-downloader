@@ -1,6 +1,6 @@
 # Streamlit YouTube Downloader
 
-Hosted website for free, fast YouTube downloading at https://share.streamlit.io/kevinlinxc/streamlit-yt-downloader
+Hosted website for free, fast YouTube downloading at https://kevinlinxc-yt-downloader.streamlit.app/
 
 
 # About
